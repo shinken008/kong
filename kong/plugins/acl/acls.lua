@@ -1,18 +1,15 @@
-local singletons = require "kong.singletons"
-
-
 local invalidate_cache = function(self, entity)
   local consumer = entity.consumer
   if type(consumer) ~= "table" then
     return true
   end
-  -- skip next lines in some tests where singletons is not available
-  if not singletons.cache then
+  -- skip next lines in some tests where the kong variable is not available
+  if not _G.kong then
     return true
   end
 
   local cache_key = self:cache_key(consumer.id)
-  return singletons.cache:invalidate(cache_key)
+  return kong.cache:invalidate(cache_key)
 end
 
 

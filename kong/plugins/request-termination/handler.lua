@@ -1,5 +1,4 @@
 local BasePlugin = require "kong.plugins.base_plugin"
-local singletons = require "kong.singletons"
 local responses = require "kong.tools.responses"
 local constants = require "kong.constants"
 local meta = require "kong.meta"
@@ -32,7 +31,7 @@ local function flush(ctx)
 
   ngx.status = status
 
-  if singletons.configuration.enabled_headers[constants.HEADERS.SERVER] then
+  if kong.configuration.enabled_headers[constants.HEADERS.SERVER] then
     ngx.header[constants.HEADERS.SERVER] = server_header
 
   else

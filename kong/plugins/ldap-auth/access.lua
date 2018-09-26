@@ -1,6 +1,5 @@
 local responses = require "kong.tools.responses"
 local constants = require "kong.constants"
-local singletons = require "kong.singletons"
 local ldap = require "kong.plugins.ldap-auth.ldap"
 
 local match = string.match
@@ -116,7 +115,7 @@ local function authenticate(conf, given_credentials)
     return false
   end
 
-  local credential, err = singletons.cache:get(cache_key(conf, given_username, given_password), {
+  local credential, err = kong.cache:get(cache_key(conf, given_username, given_password), {
     ttl = conf.cache_ttl,
     neg_ttl = conf.cache_ttl
   }, load_credential, given_username, given_password, conf)
@@ -128,7 +127,7 @@ local function authenticate(conf, given_credentials)
 end
 
 local function load_consumer(consumer_id, anonymous)
-  local result, err = singletons.db.consumers:select { id = consumer_id }
+  local result, err = kong.db.consumers:select { id = consumer_id }
   if not result then
     if anonymous and not err then
       err = 'anonymous consumer "' .. consumer_id .. '" not found'
@@ -213,10 +212,10 @@ function _M.execute(conf)
   if not ok then
     if conf.anonymous then
       -- get anonymous user
-      local consumer_cache_key = singletons.db.consumers:cache_key(conf.anonymous)
-      local consumer, err      = singletons.cache:get(consumer_cache_key, nil,
-                                                      load_consumer,
-                                                      conf.anonymous, true)
+      local consumer_cache_key = kong.db.consumers:cache_key(conf.anonymous)
+      local consumer, err      = kong.cache:get(consumer_cache_key, nil,
+                                                load_consumer,
+                                                conf.anonymous, true)
       if err then
         responses.send_HTTP_INTERNAL_SERVER_ERROR(err)
       end
