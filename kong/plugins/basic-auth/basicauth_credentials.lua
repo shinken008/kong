@@ -1,5 +1,20 @@
 local crypto = require "kong.plugins.basic-auth.crypto"
-local utils  = require "kong.tools.utils"
+
+
+local type = type
+local re_find = ngx.re.find
+
+
+local uuid_regex = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+
+
+local function is_valid_uuid(str)
+  if type(str) ~= 'string' or #str ~= 36 then
+    return false
+  end
+
+  return re_find(str, uuid_regex, 'ioj') ~= nil
+end
 
 
 local encrypt_password = function(self, cred_id_or_username, cred)
@@ -8,7 +23,7 @@ local encrypt_password = function(self, cred_id_or_username, cred)
   local existing
   if cred_id_or_username then
     local err, err_t
-    if utils.is_valid_uuid(cred_id_or_username) then
+    if is_valid_uuid(cred_id_or_username) then
       existing, err, err_t = self:select({ id = cred_id_or_username })
     else
       existing, err, err_t = self:select_by_username(cred_id_or_username)
