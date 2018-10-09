@@ -1,27 +1,34 @@
 local BasePlugin = require "kong.plugins.base_plugin"
 local singletons = require "kong.singletons"
-local responses = require "kong.tools.responses"
 local constants = require "kong.constants"
 local meta = require "kong.meta"
 
 
 local ngx = ngx
-
-
+local kong = kong
 local server_header = meta._SERVER_TOKENS
+
+
+local DEFAULT_RESPONSE = {
+  [401] = "Unauthorized",
+  [404] = "Not found",
+  [405] = "Method not allowed",
+  [500] = "An unexpected error occurred",
+  [502] = "Bad Gateway",
+  [503] = "Service unavailable",
+}
 
 
 local RequestTerminationHandler = BasePlugin:extend()
 
 
 RequestTerminationHandler.PRIORITY = 2
-RequestTerminationHandler.VERSION = "0.1.1"
+RequestTerminationHandler.VERSION = "0.1.2"
 
 
 local function flush(ctx)
-  ctx = ctx or ngx.ctx
-
-  local response = ctx.delayed_response
+  local response = ctx.delayed_response or kong.ctx.shared.delayed_response or
+                   ngx.ctx.delayed_response
 
   local status       = response.status_code
   local content      = response.content
@@ -33,14 +40,15 @@ local function flush(ctx)
   ngx.status = status
 
   if singletons.configuration.enabled_headers[constants.HEADERS.SERVER] then
-    ngx.header[constants.HEADERS.SERVER] = server_header
+    kong.response.set_header(constants.HEADERS.SERVER, server_header)
 
   else
-    ngx.header[constants.HEADERS.SERVER] = nil
+    kong.response.clear_header(constants.HEADERS.SERVER)
   end
 
-  ngx.header["Content-Type"]   = content_type
-  ngx.header["Content-Length"] = #content
+  kong.response.set_header("Content-Type", content_type)
+  kong.response.set_header("Content-Length", #content)
+
   ngx.print(content)
 
   return ngx.exit(status)
@@ -59,21 +67,29 @@ function RequestTerminationHandler:access(conf)
   local content = conf.body
 
   if content then
-    local ctx = ngx.ctx
-    if ctx.delay_response and not ctx.delayed_response then
-      ctx.delayed_response = {
+    local shared_ctx = kong.ctx.shared
+    local ngx_ctx = ngx.ctx
+
+    if (shared_ctx.delay_response and not shared_ctx.delayed_response) or
+       (ngx_ctx.delay_response    and not ngx_ctx.delayed_response) then
+
+      local delayed_response = {
         status_code  = status,
         content      = content,
         content_type = conf.content_type,
       }
 
-      ctx.delayed_response_callback = flush
+      shared_ctx.delayed_response = delayed_response
+      shared_ctx.delayed_response_callback = flush
+
+      ngx_ctx.delayed_response = delayed_response
+      ngx_ctx.delayed_response_callback = flush
 
       return
     end
   end
 
-  return responses.send(status, conf.message)
+  return kong.response.exit(status, { message = conf.message or DEFAULT_RESPONSE[status] })
 end
 
 
