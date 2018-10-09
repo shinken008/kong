@@ -28,8 +28,8 @@ describe("Plugin: rate-limiting (policies)", function()
       local periods = timestamp.get_timestamps(current_timestamp)
 
       for period, period_date in pairs(periods) do
-        local metric = assert(cluster_policy.usage(conf, identifier,
-                                                   current_timestamp, period))
+        local metric = assert(cluster_policy.usage(conf, identifier, period,
+                                                   current_timestamp))
         assert.equal(0, metric)
       end
     end)
@@ -52,8 +52,8 @@ describe("Plugin: rate-limiting (policies)", function()
 
       -- First select
       for period, period_date in pairs(periods) do
-        local metric = assert(cluster_policy.usage(conf, identifier,
-                                                   current_timestamp, period))
+        local metric = assert(cluster_policy.usage(conf, identifier, period,
+                                                   current_timestamp))
         assert.equal(1, metric)
       end
 
@@ -62,8 +62,8 @@ describe("Plugin: rate-limiting (policies)", function()
 
       -- Second select
       for period, period_date in pairs(periods) do
-        local metric = assert(cluster_policy.usage(conf, identifier,
-                                                   current_timestamp, period))
+        local metric = assert(cluster_policy.usage(conf, identifier, period,
+                                                   current_timestamp))
         assert.equal(2, metric)
       end
 
@@ -81,8 +81,8 @@ describe("Plugin: rate-limiting (policies)", function()
           expected_value = 1
         end
 
-        local metric = assert(cluster_policy.usage(conf, identifier,
-                                                   current_timestamp, period))
+        local metric = assert(cluster_policy.usage(conf, identifier, period,
+                                                   current_timestamp))
         assert.equal(expected_value, metric)
       end
     end)

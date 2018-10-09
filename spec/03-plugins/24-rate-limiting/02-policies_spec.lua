@@ -33,8 +33,7 @@ for _, strategy in helpers.each_strategy() do
         local periods = timestamp.get_timestamps(current_timestamp)
 
         for period in pairs(periods) do
-          local metric = assert(cluster_policy.usage(conf, identifier,
-                                                     current_timestamp, period))
+          local metric = assert(cluster_policy.usage(conf, identifier, period, current_timestamp))
           assert.equal(0, metric)
         end
       end)
@@ -57,8 +56,7 @@ for _, strategy in helpers.each_strategy() do
 
         -- First select
         for period in pairs(periods) do
-          local metric = assert(cluster_policy.usage(conf, identifier,
-                                                     current_timestamp, period))
+          local metric = assert(cluster_policy.usage(conf, identifier, period, current_timestamp))
           assert.equal(1, metric)
         end
 
@@ -67,8 +65,7 @@ for _, strategy in helpers.each_strategy() do
 
         -- Second select
         for period in pairs(periods) do
-          local metric = assert(cluster_policy.usage(conf, identifier,
-                                                     current_timestamp, period))
+          local metric = assert(cluster_policy.usage(conf, identifier, period, current_timestamp))
           assert.equal(2, metric)
         end
 
@@ -86,8 +83,7 @@ for _, strategy in helpers.each_strategy() do
             expected_value = 1
           end
 
-          local metric = assert(cluster_policy.usage(conf, identifier,
-                                                     current_timestamp, period))
+          local metric = assert(cluster_policy.usage(conf, identifier, period, current_timestamp))
           assert.equal(expected_value, metric)
         end
       end)
