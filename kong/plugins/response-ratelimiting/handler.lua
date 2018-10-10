@@ -27,9 +27,9 @@ end
 
 
 function ResponseRateLimitingHandler:log(conf)
-  if not ngx.ctx.stop_log and ngx.ctx.usage then
+  if not kong.ctx.plugin.stop_log and kong.ctx.plugin.usage then
     ResponseRateLimitingHandler.super.log(self)
-    log.execute(conf, ngx.ctx.identifier, ngx.ctx.current_timestamp, ngx.ctx.increments, ngx.ctx.usage)
+    log.execute(conf, kong.ctx.plugin.identifier, kong.ctx.plugin.current_timestamp, kong.ctx.plugin.increments, kong.ctx.plugin.usage)
   end
 end
 
