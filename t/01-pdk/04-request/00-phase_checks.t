@@ -221,6 +221,17 @@ qq{
                 body_filter   = false,
                 log           = false,
             },
+            {
+                method        = "get_start_time",
+                args          = {},
+                init_worker   = false,
+                certificate   = "pending",
+                rewrite       = true,
+                access        = true,
+                header_filter = true,
+                body_filter   = true,
+                log           = true,
+            },
         }
 
         phase_check_functions(phases.init_worker)
